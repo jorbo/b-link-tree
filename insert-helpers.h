@@ -32,7 +32,7 @@ ErrorCode insert_after_split(
 	AddrNode *leaf,
 	//! [out] The new sibling to insert into
 	AddrNode *sibling,
-	Node *memory
+	Node **memory
 );
 
 //! @brief Replace a key without changing its corresponding value

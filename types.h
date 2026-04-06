@@ -72,5 +72,16 @@ typedef bstatusval_t search_out_t;
 typedef KvPair insert_in_t;
 typedef ErrorCode insert_out_t;
 
+//! @brief node id + address encode/decode helpers
+// [ node_id: 8 bits | local_addr : 24bits]
+#define BPTR_NODE_BITS   8
+#define BPTR_ADDR_BITS   24
+#define BPTR_ADDR_MASK   ((1u << BPTR_ADDR_BITS) - 1)
+
+static inline uint8_t  bptr_node(bptr_t p) { return p >> BPTR_ADDR_BITS; }
+static inline uint32_t bptr_addr(bptr_t p) { return p & BPTR_ADDR_MASK; }
+static inline bptr_t   bptr_make(uint8_t node, uint32_t addr) {
+    return ((bptr_t)node << BPTR_ADDR_BITS) | addr;
+}
 
 #endif

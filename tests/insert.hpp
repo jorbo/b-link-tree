@@ -14,7 +14,7 @@ extern "C" {
 #include <pthread.h>
 
 extern FILE *log_stream;
-extern Node memory[MEM_SIZE];
+extern Node *memory[MAX_LEVELS];
 
 
 TEST(InsertTest, LeafNode) {
@@ -24,7 +24,7 @@ TEST(InsertTest, LeafNode) {
 		test_info->test_suite_name(), test_info->name()
 	);
 
-	bptr_t root = 0;
+	bptr_t root = bptr_make(0, 0);
 	mem_reset_all(memory);
 	bval_t value;
 
@@ -62,7 +62,7 @@ TEST(InsertTest, SplitRoot) {
 		test_info->test_suite_name(), test_info->name()
 	);
 
-	bptr_t root = 0;
+	bptr_t root = bptr_make(0, 0);
 	bptr_t lchild;
 	bval_t value;
 	mem_reset_all(memory);
@@ -110,7 +110,7 @@ TEST(InsertTest, SequentialInsert) {
 		test_info->test_suite_name(), test_info->name()
 	);
 
-	bptr_t root = 0;
+	bptr_t root = bptr_make(0, 0);
 	bval_t value;
 	mem_reset_all(memory);
 

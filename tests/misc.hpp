@@ -11,7 +11,7 @@ extern "C" {
 #include <gtest/gtest.h>
 
 extern FILE *log_stream;
-extern Node memory[MEM_SIZE];
+extern Node *memory[MAX_LEVELS];
 
 
 TEST(InitTest, Tree) {
@@ -21,13 +21,15 @@ TEST(InitTest, Tree) {
 		test_info->test_suite_name(), test_info->name()
 	);
 
-	bptr_t root = 0;
+	bptr_t root = bptr_make(0, 0);
 	mem_reset_all(memory);
 
-	for (bptr_t i = 0; i < MAX_LEVELS * MAX_NODES_PER_LEVEL; ++i) {
-		Node n = mem_read(i, memory);
-		for (li_t j = 0; j < TREE_ORDER; ++j) {
-			EXPECT_EQ(n.keys[j], INVALID);
+	for (bptr_t level = 0; level < MAX_LEVELS; ++level) {
+		for (bptr_t col = 0; col < MAX_NODES_PER_LEVEL; ++col) {
+			Node n = mem_read(bptr_make(level, col), memory);
+			for (li_t j = 0; j < TREE_ORDER; ++j) {
+				EXPECT_EQ(n.keys[j], INVALID);
+			}
 		}
 	}
 
@@ -43,12 +45,12 @@ TEST(ValidateTest, RootOneChild) {
 	);
 
 	AddrNode root;
-	root.addr = MAX_LEAVES;
+	root.addr = bptr_make(1, 0);
 	mem_reset_all(memory);
 	root.node = mem_read_lock(root.addr, memory);
-	AddrNode lchild = {.node = mem_read_lock(0, memory), .addr = 0};
+	AddrNode lchild = {.node = mem_read_lock(bptr_make(0, 0), memory), .addr = bptr_make(0, 0)};
 
-	root.node.keys[0] = 6; root.node.values[0].ptr = 0;
+	root.node.keys[0] = 6; root.node.values[0].ptr = lchild.addr;
 	lchild.node.keys[0] = 1; lchild.node.values[0].data = -1;
 	lchild.node.keys[1] = 2; lchild.node.values[1].data = -2;
 	lchild.node.keys[2] = 4; lchild.node.values[2].data = -4;

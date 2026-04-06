@@ -58,7 +58,7 @@ void *stride_insert(void *argv) {
 
 bool check_inserted_leaves() {
 	uint_fast8_t next_val = 1;
-	AddrNode node = {.addr = 0};
+	AddrNode node = {.addr = bptr_make(0, 0)};
 
 	while (node.addr != INVALID) {
 		node.node = mem_read(node.addr, memory);

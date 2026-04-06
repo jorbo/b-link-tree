@@ -11,6 +11,6 @@ typedef struct Node Node;
 //! @param[in]    value  The value to insert
 //! @return An error code representing the success or type of failure of the
 //!         operation
-ErrorCode insert(bptr_t *root, bkey_t key, bval_t value, Node *memory);
+ErrorCode insert(bptr_t *root, bkey_t key, bval_t value, Node **memory);
 
 #endif

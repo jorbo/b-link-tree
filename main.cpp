@@ -1,4 +1,7 @@
 #include "defs.h"
+extern "C" {
+#include "node.h"
+};
 #ifndef NO_GTEST
 #include "tests/misc.hpp"
 #include "tests/search.hpp"
@@ -13,7 +16,8 @@
 
 
 FILE *log_stream = fopen("main.log", "w");
-Node memory[MEM_SIZE];
+static Node mem_data[MAX_LEVELS][MAX_NODES_PER_LEVEL];
+Node *memory[MAX_LEVELS];
 
 
 #ifndef NO_GTEST
@@ -27,6 +31,7 @@ static int run_gtests(int argc, char **argv) {
 
 
 int main(int argc, char **argv) {
+	for (int i = 0; i < MAX_LEVELS; i++) memory[i] = mem_data[i];
 #ifndef NO_GTEST
 	if (argc < 2 || strcmp(argv[1], "gtest") == 0) {
 		return run_gtests(argc, argv);

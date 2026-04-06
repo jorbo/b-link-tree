@@ -36,7 +36,7 @@ Request encode_insert_req(insert_in_t in);
 Response encode_search_resp(search_out_t out);
 Response encode_insert_resp(insert_out_t out);
 
-Response execute_req(Request req, bptr_t *root, Node *memory);
+Response execute_req(Request req, bptr_t *root, Node **memory);
 
 
 #endif

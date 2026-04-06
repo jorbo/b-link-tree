@@ -20,7 +20,7 @@ ErrorCode split_node(
 	AddrNode *parent,
 	//! [out] The contents of the split node's new sibling
 	AddrNode *sibling,
-	Node *memory
+	Node **memory
 );
 
 
