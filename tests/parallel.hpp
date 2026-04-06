@@ -19,7 +19,7 @@ extern "C" {
 #endif
 
 extern FILE *log_stream;
-extern Node memory[MEM_SIZE];
+extern Node *memory[MAX_LEVELS];
 constexpr uint_fast32_t KEY_MAX = (TREE_ORDER/2)*(MAX_LEAVES+1);
 
 
@@ -32,7 +32,7 @@ TEST(ParallelTest, InterleavedAscending) {
 
 	char strbuf[64];
 	pthread_t thread_even, thread_odd;
-	bptr_t root = 0;
+	bptr_t root = bptr_make(0, 0);
 	si_args odd_args = {
 		.start = 1,
 		.end = KEY_MAX,
@@ -45,7 +45,7 @@ TEST(ParallelTest, InterleavedAscending) {
 
 	for (uint_fast16_t i = 0; i < PARALLEL_RERUNS; ++i) {
 		fprintf(log_stream, "Run %d\n", i+1);
-		root = 0;
+		root = bptr_make(0, 0);
 		mem_reset_all(memory);
 		sprintf(strbuf, "thread-logs/int-asc_run_%04d_%s.log", i, "odd");
 		odd_args.log_stream = fopen(strbuf, "w");
@@ -79,7 +79,7 @@ TEST(ParallelTest, InterleavedDescending) {
 
 	char strbuf[64];
 	pthread_t thread_even, thread_odd;
-	bptr_t root = 0;
+	bptr_t root = bptr_make(0, 0);
 	si_args odd_args = {
 		.end = 1,
 		.stride = -2,
@@ -97,7 +97,7 @@ TEST(ParallelTest, InterleavedDescending) {
 
 	for (uint_fast16_t i = 0; i < PARALLEL_RERUNS; ++i) {
 		fprintf(log_stream, "Run %d\n", i+1);
-		root = 0;
+		root = bptr_make(0, 0);
 		mem_reset_all(memory);
 		sprintf(strbuf, "thread-logs/int-des_run_%04d_%s.log", i, "odd");
 		odd_args.log_stream = fopen(strbuf, "w");
@@ -131,7 +131,7 @@ TEST(ParallelTest, CrossfadeInsert) {
 
 	char strbuf[64];
 	pthread_t thread_even, thread_odd;
-	bptr_t root = 0;
+	bptr_t root = bptr_make(0, 0);
 	si_args odd_args = {
 		.start = 1,
 		.end = KEY_MAX,
@@ -147,7 +147,7 @@ TEST(ParallelTest, CrossfadeInsert) {
 
 	for (uint_fast16_t i = 0; i < PARALLEL_RERUNS; ++i) {
 		fprintf(log_stream, "Run %d\n", i+1);
-		root = 0;
+		root = bptr_make(0, 0);
 		mem_reset_all(memory);
 		sprintf(strbuf, "thread-logs/x-fade_run_%04d_%s.log", i, "odd");
 		odd_args.log_stream = fopen(strbuf, "w");

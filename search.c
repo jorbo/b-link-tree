@@ -3,7 +3,7 @@
 #include "node.h"
 
 
-bstatusval_t search(bptr_t root, bkey_t key, Node const *memory) {
+bstatusval_t search(bptr_t root, bkey_t key, Node const **memory) {
 	bstatusval_t result;
 	AddrNode n;
 	n.addr = root;

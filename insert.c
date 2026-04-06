@@ -8,9 +8,9 @@
 
 
 #ifdef OPTIMISTIC_LOCK
-static ErrorCode optimistic_insert(bptr_t *root, bkey_t key, bval_t value, Node *memory) {
+static ErrorCode optimistic_insert(bptr_t *root, bkey_t key, bval_t value, Node **memory) {
 #else
-ErrorCode insert(bptr_t *root, bkey_t key, bval_t value, Node *memory) {
+ErrorCode insert(bptr_t *root, bkey_t key, bval_t value, Node **memory) {
 #endif
 	ErrorCode status;
 	li_t i_leaf;
@@ -84,7 +84,7 @@ ErrorCode insert(bptr_t *root, bkey_t key, bval_t value, Node *memory) {
 }
 
 #ifdef OPTIMISTIC_LOCK
-ErrorCode insert(bptr_t *root, bkey_t key, bval_t value, Node *memory) {
+ErrorCode insert(bptr_t *root, bkey_t key, bval_t value, Node **memory) {
 	ErrorCode status;
 	do {
 		status = optimistic_insert(root, key, value, memory);

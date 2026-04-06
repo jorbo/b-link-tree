@@ -23,7 +23,7 @@ TEST(OperationsTest, InsertRandom) {
 	memset(resps, 0, sizeof(Response)*OP_COUNT);
 	mem_reset_all(memory);
 	srand(0);
-	bptr_t root = 0;
+	bptr_t root = bptr_make(0, 0);
 
 	// Generate Requests
 	for (; i < OP_COUNT/2; ++i) {

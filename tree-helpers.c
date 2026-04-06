@@ -11,7 +11,7 @@
 //!                      large enough to accommodate a tree of maximum height.
 //! @return An error code representing the success or type of failure of the
 //!         operation
-ErrorCode trace_lineage(bptr_t root, bkey_t key, bptr_t *lineage, Node const *memory) {
+ErrorCode trace_lineage(bptr_t root, bkey_t key, bptr_t *lineage, Node const **memory) {
 	lineage[0] = root;
 	li_t curr = 0;
 	Node node;

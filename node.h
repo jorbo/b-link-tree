@@ -63,15 +63,14 @@ typedef struct AddrNode AddrNode;
 //! @brief Check if a node at the given address is a leaf node or an inner node
 //! @param[in] addr  Address of the node within the tree to check
 inline static bool is_leaf(bptr_t addr) {
-	// Assume leaves are stored at lowest memory addresses
-	return addr < MAX_LEAVES;
+	// Leaves reside on node/level 0
+	return bptr_node(addr) == 0;
 }
 
 //! @brief Check which level of the tree a node address resides on
-//! Assumes all levels take up equal space in memory
-//! @param[in] node_ptr  The node address to check
+//! @param[in] node_ptr  The encoded node address to check
 inline static bptr_t get_level(bptr_t node_ptr) {
-	return (node_ptr / MAX_NODES_PER_LEVEL);
+	return bptr_node(node_ptr);
 }
 
 

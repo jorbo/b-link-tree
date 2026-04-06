@@ -26,15 +26,15 @@ static ErrorCode alloc_sibling(
 	AddrNode *leaf,
 	//! [out] The contents of the split node's new sibling
 	AddrNode *sibling,
-	Node *memory
+	Node **memory
 ) {
 	const uint_fast8_t level = get_level(leaf->addr);
 	bool success;
+	bptr_t col;
 
-	// Find an empty spot for the new leaf
-	for (sibling->addr = level * MAX_NODES_PER_LEVEL;
-		sibling->addr < (level+1) * MAX_NODES_PER_LEVEL;
-		++sibling->addr) {
+	// Find an empty spot for the new sibling at the same level
+	for (col = 0; col < MAX_NODES_PER_LEVEL; ++col) {
+		sibling->addr = bptr_make(level, col);
 		// Found an empty slot
 		sibling->node = mem_read_trylock(sibling->addr, memory, &success);
 		if (success && sibling->node.keys[0] == INVALID) {
@@ -44,7 +44,7 @@ static ErrorCode alloc_sibling(
 		}
 	}
 	// If we didn't break, we didn't find an empty slot
-	if (sibling->addr == (level+1) * MAX_NODES_PER_LEVEL) {
+	if (col == MAX_NODES_PER_LEVEL) {
 		sibling->addr = INVALID;
 		return OUT_OF_MEMORY;
 	}
@@ -74,20 +74,13 @@ static ErrorCode split_root(
 	AddrNode *parent,
 	//! [in] The contents of the split node's new sibling
 	AddrNode const *sibling,
-	Node *memory
+	Node **memory
 ) {
-	// If this is the only node
-	// We need to create the first inner node
-	if (is_leaf(leaf->addr)) {
-		// Make a new root node
-		*root = MAX_LEAVES;
-	} else {
-		if (*root + MAX_NODES_PER_LEVEL >= MEM_SIZE) {
-			return OUT_OF_MEMORY;
-		} else {
-			*root = *root + MAX_NODES_PER_LEVEL;
-		}
+	const bptr_t next_level = get_level(leaf->addr) + 1;
+	if (next_level >= MAX_LEVELS) {
+		return OUT_OF_MEMORY;
 	}
+	*root = bptr_make(next_level, 0);
 	parent->addr = *root;
 	parent->node = mem_read_lock(parent->addr, memory);
 	init_node(&parent->node);
@@ -136,7 +129,7 @@ static ErrorCode split_nonroot(
 
 
 ErrorCode split_node(
-	bptr_t *root, AddrNode *leaf, AddrNode *parent, AddrNode *sibling, Node *memory
+	bptr_t *root, AddrNode *leaf, AddrNode *parent, AddrNode *sibling, Node **memory
 ) {
 	ErrorCode status = alloc_sibling(root, leaf, sibling, memory);
 	if (status != SUCCESS) return status;
