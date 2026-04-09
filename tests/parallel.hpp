@@ -20,6 +20,7 @@ extern "C" {
 
 extern FILE *log_stream;
 extern Node memory[MEM_SIZE];
+extern mem_context_t ctx;
 constexpr uint_fast32_t KEY_MAX = (TREE_ORDER/2)*(MAX_LEAVES+1);
 
 
@@ -46,7 +47,7 @@ TEST(ParallelTest, InterleavedAscending) {
 	for (uint_fast16_t i = 0; i < PARALLEL_RERUNS; ++i) {
 		fprintf(log_stream, "Run %d\n", i+1);
 		root = 0;
-		mem_reset_all(memory);
+		mem_reset_all(&ctx);
 		sprintf(strbuf, "thread-logs/int-asc_run_%04d_%s.log", i, "odd");
 		odd_args.log_stream = fopen(strbuf, "w");
 		sprintf(strbuf, "thread-logs/int-asc_run_%04d_%s.log", i, "even");
@@ -65,7 +66,7 @@ TEST(ParallelTest, InterleavedAscending) {
 
 		ASSERT_TRUE(check_inserted_leaves());
 
-		ASSERT_TRUE(validate(root, log_stream, memory));
+		ASSERT_TRUE(validate(root, log_stream, &ctx));
 	}
 	fprintf(log_stream, "\n\n");
 }
@@ -98,7 +99,7 @@ TEST(ParallelTest, InterleavedDescending) {
 	for (uint_fast16_t i = 0; i < PARALLEL_RERUNS; ++i) {
 		fprintf(log_stream, "Run %d\n", i+1);
 		root = 0;
-		mem_reset_all(memory);
+		mem_reset_all(&ctx);
 		sprintf(strbuf, "thread-logs/int-des_run_%04d_%s.log", i, "odd");
 		odd_args.log_stream = fopen(strbuf, "w");
 		sprintf(strbuf, "thread-logs/int-des_run_%04d_%s.log", i, "even");
@@ -117,7 +118,7 @@ TEST(ParallelTest, InterleavedDescending) {
 
 		ASSERT_TRUE(check_inserted_leaves());
 
-		ASSERT_TRUE(validate(root, log_stream, memory));
+		ASSERT_TRUE(validate(root, log_stream, &ctx));
 	}
 	fprintf(log_stream, "\n\n");
 }
@@ -148,7 +149,7 @@ TEST(ParallelTest, CrossfadeInsert) {
 	for (uint_fast16_t i = 0; i < PARALLEL_RERUNS; ++i) {
 		fprintf(log_stream, "Run %d\n", i+1);
 		root = 0;
-		mem_reset_all(memory);
+		mem_reset_all(&ctx);
 		sprintf(strbuf, "thread-logs/x-fade_run_%04d_%s.log", i, "odd");
 		odd_args.log_stream = fopen(strbuf, "w");
 		sprintf(strbuf, "thread-logs/x-fade_run_%04d_%s.log", i, "even");
@@ -167,7 +168,7 @@ TEST(ParallelTest, CrossfadeInsert) {
 
 		ASSERT_TRUE(check_inserted_leaves());
 
-		ASSERT_TRUE(validate(root, log_stream, memory));
+		ASSERT_TRUE(validate(root, log_stream, &ctx));
 	}
 	fprintf(log_stream, "\n\n");
 }

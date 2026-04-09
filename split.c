@@ -16,9 +16,10 @@ inline static void init_node(Node *node) {
 	memset(node->keys, INVALID, TREE_ORDER * sizeof(bkey_t));
 }
 
-//! @brief Allocate a new sibling node in an empty slot in main mameory
+//! @brief Allocate a new sibling node in an empty slot in local memory
 //!
-//! Acquires a lock on the sibling node
+//! Acquires a lock on the sibling node.  The sibling is always allocated on
+//! the same machine as the leaf being split (ctx->local_id).
 static ErrorCode alloc_sibling(
 	//! [in] Root of the tree the nodes reside in
 	bptr_t const *root,
@@ -26,25 +27,27 @@ static ErrorCode alloc_sibling(
 	AddrNode *leaf,
 	//! [out] The contents of the split node's new sibling
 	AddrNode *sibling,
-	Node *memory
+	//! [in] Memory context
+	mem_context_t *ctx
 ) {
 	const uint_fast8_t level = get_level(leaf->addr);
 	bool success;
+	bptr_t laddr;
 
-	// Find an empty spot for the new leaf
-	for (sibling->addr = level * MAX_NODES_PER_LEVEL;
-		sibling->addr < (level+1) * MAX_NODES_PER_LEVEL;
-		++sibling->addr) {
-		// Found an empty slot
-		sibling->node = mem_read_trylock(sibling->addr, memory, &success);
+	// Find an empty local slot at the same level as the node being split
+	for (laddr = level * MAX_NODES_PER_LEVEL;
+		laddr < (level+1) * MAX_NODES_PER_LEVEL;
+		++laddr) {
+		sibling->addr = bptr_make(ctx->local_id, laddr);
+		sibling->node = mem_read_trylock(sibling->addr, ctx, &success);
 		if (success && sibling->node.keys[0] == INVALID) {
 			break;
 		} else {
-			mem_unlock(sibling->addr, memory);
+			mem_unlock(sibling->addr, ctx);
 		}
 	}
 	// If we didn't break, we didn't find an empty slot
-	if (sibling->addr == (level+1) * MAX_NODES_PER_LEVEL) {
+	if (laddr == (level+1) * MAX_NODES_PER_LEVEL) {
 		sibling->addr = INVALID;
 		return OUT_OF_MEMORY;
 	}
@@ -74,22 +77,23 @@ static ErrorCode split_root(
 	AddrNode *parent,
 	//! [in] The contents of the split node's new sibling
 	AddrNode const *sibling,
-	Node *memory
+	//! [in] Memory context
+	mem_context_t *ctx
 ) {
-	// If this is the only node
-	// We need to create the first inner node
+	// If this is the only node we need to create the first inner node
 	if (is_leaf(leaf->addr)) {
-		// Make a new root node
-		*root = MAX_LEAVES;
+		// New root is the first inner-node slot, encoded with the local node_id
+		*root = bptr_make(ctx->local_id, MAX_LEAVES);
 	} else {
-		if (*root + MAX_NODES_PER_LEVEL >= MEM_SIZE) {
+		bptr_t local_root = bptr_local_addr(*root);
+		if (local_root + MAX_NODES_PER_LEVEL >= MEM_SIZE) {
 			return OUT_OF_MEMORY;
 		} else {
-			*root = *root + MAX_NODES_PER_LEVEL;
+			*root = bptr_make(ctx->local_id, local_root + MAX_NODES_PER_LEVEL);
 		}
 	}
 	parent->addr = *root;
-	parent->node = mem_read_lock(parent->addr, memory);
+	parent->node = mem_read_lock(parent->addr, ctx);
 	init_node(&parent->node);
 	parent->node.keys[0] = leaf->node.keys[DIV2CEIL(TREE_ORDER)-1];
 	parent->node.values[0].ptr = leaf->addr;
@@ -136,20 +140,20 @@ static ErrorCode split_nonroot(
 
 
 ErrorCode split_node(
-	bptr_t *root, AddrNode *leaf, AddrNode *parent, AddrNode *sibling, Node *memory
+	bptr_t *root, AddrNode *leaf, AddrNode *parent, AddrNode *sibling, mem_context_t *ctx
 ) {
-	ErrorCode status = alloc_sibling(root, leaf, sibling, memory);
+	ErrorCode status = alloc_sibling(root, leaf, sibling, ctx);
 	if (status != SUCCESS) return status;
 	if (parent->addr == INVALID) {
-		status = split_root(root, leaf, parent, sibling, memory);
+		status = split_root(root, leaf, parent, sibling, ctx);
 	} else {
 		status = split_nonroot(root, leaf, parent, sibling);
 	}
 	if (status == SUCCESS) {
 		#ifdef OPTIMISTIC_LOCK
-		if (!mem_write_unlock(parent, memory)) status = RESTART;
+		if (!mem_write_unlock(parent, ctx)) status = RESTART;
 		#else
-		mem_write_unlock(parent, memory);
+		mem_write_unlock(parent, ctx);
 		#endif
 	}
 	return status;

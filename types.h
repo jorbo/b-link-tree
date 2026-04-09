@@ -8,8 +8,28 @@
 
 //! Datatype of keys
 typedef uint32_t bkey_t;
-//! Datatype of pointers within the tree
+//! Datatype of pointers within the tree.
+//! Upper 8 bits encode the node_id (which networked machine holds this node);
+//! lower 24 bits encode the local address within that machine's memory.
 typedef uint32_t bptr_t;
+//! Datatype of network node identifiers (up to 256 distinct machines)
+typedef uint8_t node_id_t;
+
+//! Number of bits used to encode the node_id in a bptr_t
+#define BPTR_NODE_ID_BITS  8u
+//! Bit offset of the node_id field within a bptr_t
+#define BPTR_NODE_ID_SHIFT 24u
+//! Mask for the node_id field
+#define BPTR_NODE_ID_MASK  0xFF000000u
+//! Mask for the local address field
+#define BPTR_LOCAL_MASK    0x00FFFFFFu
+
+//! @brief Extract the node_id from an encoded bptr_t
+#define bptr_node_id(p)       ((node_id_t)(((p) >> BPTR_NODE_ID_SHIFT) & 0xFFu))
+//! @brief Extract the local address from an encoded bptr_t
+#define bptr_local_addr(p)    ((bptr_t)((p) & BPTR_LOCAL_MASK))
+//! @brief Build a bptr_t from a node_id and a local address
+#define bptr_make(nid, laddr) ((bptr_t)(((bptr_t)(nid) << BPTR_NODE_ID_SHIFT) | ((bptr_t)(laddr) & BPTR_LOCAL_MASK)))
 //! Datatype of leaf data
 typedef int32_t bdata_t;
 //! @brief Datatype of node values, which can be either data or pointers within

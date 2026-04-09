@@ -3,8 +3,15 @@
 
 
 extern "C" {
+#include "../memory.h"
 #include "../operations.h"
 };
+#include <cstring>
+#include <gtest/gtest.h>
+
+extern FILE *log_stream;
+extern Node memory[MEM_SIZE];
+extern mem_context_t ctx;
 
 
 TEST(OperationsTest, InsertRandom) {
@@ -21,7 +28,7 @@ TEST(OperationsTest, InsertRandom) {
 
 	memset(reqs, 0, sizeof(Request)*OP_COUNT);
 	memset(resps, 0, sizeof(Response)*OP_COUNT);
-	mem_reset_all(memory);
+	mem_reset_all(&ctx);
 	srand(0);
 	bptr_t root = 0;
 
@@ -37,7 +44,7 @@ TEST(OperationsTest, InsertRandom) {
 	}
 	// Execute requests and store responses
 	for (i = 0; i < OP_COUNT; ++i) {
-		resps[i] = execute_req(reqs[i], &root, memory);
+		resps[i] = execute_req(reqs[i], &root, &ctx);
 		EXPECT_EQ(resps[i].opcode, i < OP_COUNT/2 ? INSERT : SEARCH);
 		EXPECT_EQ(i < (OP_COUNT/2) ? resps[i].search.status : resps[i].insert, SUCCESS);
 	}

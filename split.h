@@ -6,6 +6,7 @@
 
 typedef struct Node Node;
 typedef struct AddrNode AddrNode;
+typedef struct mem_context mem_context_t;
 
 
 //! @brief Split a node in the tree and return the affected nodes
@@ -20,7 +21,8 @@ ErrorCode split_node(
 	AddrNode *parent,
 	//! [out] The contents of the split node's new sibling
 	AddrNode *sibling,
-	Node *memory
+	//! [in] Memory context
+	mem_context_t *ctx
 );
 
 

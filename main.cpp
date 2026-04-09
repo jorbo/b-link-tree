@@ -5,6 +5,7 @@
 #include "tests/insert.hpp"
 #include "tests/parallel.hpp"
 #include "tests/operations.hpp"
+#include "tests/distributed.hpp"
 #endif
 #include "thread-runner.hpp"
 #include <iostream>
@@ -14,6 +15,7 @@
 
 FILE *log_stream = fopen("main.log", "w");
 Node memory[MEM_SIZE];
+mem_context_t ctx;
 
 
 #ifndef NO_GTEST
@@ -27,6 +29,7 @@ static int run_gtests(int argc, char **argv) {
 
 
 int main(int argc, char **argv) {
+	ctx = mem_context_local(0, memory);
 #ifndef NO_GTEST
 	if (argc < 2 || strcmp(argv[1], "gtest") == 0) {
 		return run_gtests(argc, argv);

@@ -11,7 +11,7 @@
 //!                      large enough to accommodate a tree of maximum height.
 //! @return An error code representing the success or type of failure of the
 //!         operation
-ErrorCode trace_lineage(bptr_t root, bkey_t key, bptr_t *lineage, Node const *memory) {
+ErrorCode trace_lineage(bptr_t root, bkey_t key, bptr_t *lineage, mem_context_t *ctx) {
 	lineage[0] = root;
 	li_t curr = 0;
 	Node node;
@@ -19,7 +19,7 @@ ErrorCode trace_lineage(bptr_t root, bkey_t key, bptr_t *lineage, Node const *me
 
 	// Iterate until we hit a leaf
 	while (!is_leaf(lineage[curr])) {
-		node = mem_read(lineage[curr], memory);
+		node = mem_read(lineage[curr], ctx);
 		result = find_next(&node, key);
 		if (result.status != SUCCESS) return result.status;
 		lineage[++curr] = result.value.ptr;

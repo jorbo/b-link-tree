@@ -10,6 +10,7 @@ extern "C" {
 
 
 extern Node memory[MEM_SIZE];
+extern mem_context_t ctx;
 
 
 struct ThreadArgs {
@@ -29,7 +30,7 @@ static void *tree_thread(void *argv) {
 	const uint_fast64_t BLOCK_SIZE = args->op_count/args->thread_count;
 	for (uint_fast64_t i = args->thread_id * BLOCK_SIZE; i < (args->thread_id+1)*BLOCK_SIZE; ++i) {
 #endif
-		args->responses[i] = execute_req(args->requests[i], args->root, memory);
+		args->responses[i] = execute_req(args->requests[i], args->root, &ctx);
 	}
 	pthread_exit(NULL);
 }
@@ -83,7 +84,7 @@ int run_from_file(int argc, char **argv) {
 	}
 
 	// Execute requests
-	mem_reset_all(memory);
+	mem_reset_all(&ctx);
 	last = 0;
 	for (uint_fast8_t split : then_splits) {
 		std::cout << "Executing on " << (int) threads_args.at(last).thread_count << " threads..." << std::flush;

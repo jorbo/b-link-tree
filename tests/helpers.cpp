@@ -20,7 +20,7 @@ void *stride_insert(void *argv) {
 	if (args->stride > 0 && args->end > args->start) {
 		for (int_fast32_t i = args->start; i <= args->end; i += args->stride) {
 			value.data = -i;
-			status = insert(args->root, i, value, memory);
+			status = insert(args->root, i, value, &ctx);
 			dump_node_list(args->log_stream, memory);
 			if (status != SUCCESS) {
 				EXPECT_EQ(status, SUCCESS)
@@ -34,7 +34,7 @@ void *stride_insert(void *argv) {
 	} else if (args->stride < 0 && args->end < args->start) {
 		for (int_fast32_t i = args->start; i >= args->end; i += args->stride) {
 			value.data = -i;
-			status = insert(args->root, i, value, memory);
+			status = insert(args->root, i, value, &ctx);
 			dump_node_list(args->log_stream, memory);
 			if (status != SUCCESS) {
 				EXPECT_EQ(status, SUCCESS)
@@ -61,7 +61,7 @@ bool check_inserted_leaves() {
 	AddrNode node = {.addr = 0};
 
 	while (node.addr != INVALID) {
-		node.node = mem_read(node.addr, memory);
+		node.node = mem_read(node.addr, &ctx);
 		for (li_t j = 0; j < TREE_ORDER; ++j) {
 			if (node.node.keys[j] == INVALID) {
 				break;
