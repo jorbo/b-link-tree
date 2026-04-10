@@ -9,11 +9,11 @@ typedef struct Node Node;
 typedef struct mem_context mem_context_t;
 
 
-typedef enum {
-	NOP = 0,
-	SEARCH = 1,
-	INSERT = 2
-} Opcode;
+/* Use fixed-width type to ensure consistent ABI between C and C++ compilation units */
+typedef uint32_t Opcode;
+#define NOP    ((Opcode)0)
+#define SEARCH ((Opcode)1)
+#define INSERT ((Opcode)2)
 
 typedef struct {
 	Opcode opcode;
