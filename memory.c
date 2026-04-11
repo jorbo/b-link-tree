@@ -151,6 +151,7 @@ void mem_unlock(bptr_t address, mem_context_t *ctx HBM_PARAM) {
 
 void mem_reset_all(mem_context_t *ctx HBM_PARAM) {
 #ifdef __SYNTHESIS__
+	(void)ctx;
 	memset(hbm, INVALID, MEM_SIZE*sizeof(Node));
 	for (bptr_t i = 0; i < MEM_SIZE; i++) {
 		hbm[i].lock = LOCK_INIT;

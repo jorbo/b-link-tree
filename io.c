@@ -107,7 +107,7 @@ void dump_gv(FILE *stream, Node const *memory) {
 				fprintf(stream, "{|}|");
 			} else {
 				fprintf(stream, "{%d|<k%d>0x%x}|",
-					memory[i].keys[j], j, memory[i].values[j]);
+					memory[i].keys[j], j, memory[i].values[j].ptr);
 			}
 		}
 		if (memory[i].next != INVALID) {
@@ -127,7 +127,7 @@ void dump_gv(FILE *stream, Node const *memory) {
 					break;
 				} else {
 					fprintf(stream, "\t\"node%d\":k%d->\"node%d\"\n",
-						i, j, memory[i].values[j]);
+						i, j, memory[i].values[j].ptr);
 				}
 			}
 		}

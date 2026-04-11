@@ -30,6 +30,7 @@ static ErrorCode alloc_sibling(
 	//! [in] Memory context
 	mem_context_t *ctx HBM_PARAM
 ) {
+	(void)root;
 	const uint_fast8_t level = get_level(leaf->addr);
 	bool success;
 	bptr_t laddr;
@@ -116,6 +117,7 @@ static ErrorCode split_nonroot(
 	//! [in] The contents of the split node's new sibling
 	AddrNode const *sibling
 ) {
+	(void)root;
 	if (is_full(&parent->node)) {
 		return PARENT_FULL;
 	} else {
