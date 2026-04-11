@@ -8,6 +8,13 @@
 static lock_t local_readlock = LOCK_INIT;
 
 
+#ifdef __SYNTHESIS__
+//! In synthesis only local memory exists; remote nodes are reached via RDMA streams.
+static Node *resolve_mem(bptr_t address, mem_context_t *ctx, Node *hbm) {
+	(void)address; (void)ctx;
+	return hbm;
+}
+#else
 //! @brief Select the Node array for the given encoded address.
 //!        For local addresses uses ctx->local_memory;
 //!        for remote addresses uses ctx->remotes[node_id].memory.
@@ -20,7 +27,9 @@ static Node *resolve_mem(bptr_t address, mem_context_t *ctx) {
 		return ctx->remotes[nid].memory;
 	}
 }
+#endif /* __SYNTHESIS__ */
 
+#ifndef __SYNTHESIS__
 mem_context_t mem_context_local(node_id_t id, Node *memory) {
 	mem_context_t ctx;
 	memset(&ctx, 0, sizeof(ctx));
@@ -28,10 +37,11 @@ mem_context_t mem_context_local(node_id_t id, Node *memory) {
 	ctx.local_memory = memory;
 	return ctx;
 }
+#endif /* !__SYNTHESIS__ */
 
-Node mem_read(bptr_t address, mem_context_t *ctx) {
+Node mem_read(bptr_t address, mem_context_t *ctx HBM_PARAM) {
 	bptr_t laddr = bptr_local_addr(address);
-	Node *mem = resolve_mem(address, ctx);
+	Node *mem = resolve_mem(address, ctx HBM_ARG);
 	assert(laddr < MEM_SIZE);
 	return mem[laddr];
 }
@@ -43,14 +53,14 @@ Node mem_read(bptr_t address, mem_context_t *ctx) {
 //!
 //! @todo Set up multiple locks for specific regions of memory, such as by
 //! address ranges or hashes to allow higher write bandwidth.
-Node mem_read_lock(bptr_t address, mem_context_t *ctx) {
+Node mem_read_lock(bptr_t address, mem_context_t *ctx HBM_PARAM) {
 #ifdef OPTIMISTIC_LOCK
 	bptr_t laddr = bptr_local_addr(address);
-	Node *mem = resolve_mem(address, ctx);
+	Node *mem = resolve_mem(address, ctx HBM_ARG);
 	return mem[laddr];
 #else
 	bptr_t laddr = bptr_local_addr(address);
-	Node *mem = resolve_mem(address, ctx);
+	Node *mem = resolve_mem(address, ctx HBM_ARG);
 	Node tmp;
 
 	assert(laddr < MEM_SIZE);
@@ -73,14 +83,14 @@ Node mem_read_lock(bptr_t address, mem_context_t *ctx) {
 #endif
 }
 
-Node mem_read_trylock(bptr_t address, mem_context_t *ctx, bool *success) {
+Node mem_read_trylock(bptr_t address, mem_context_t *ctx, bool *success HBM_PARAM) {
 #ifdef OPTIMISTIC_LOCK
 	bptr_t laddr = bptr_local_addr(address);
-	Node *mem = resolve_mem(address, ctx);
+	Node *mem = resolve_mem(address, ctx HBM_ARG);
 	return mem[laddr];
 #else
 	bptr_t laddr = bptr_local_addr(address);
-	Node *mem = resolve_mem(address, ctx);
+	Node *mem = resolve_mem(address, ctx HBM_ARG);
 	Node tmp;
 
 	assert(laddr < MEM_SIZE);
@@ -101,9 +111,9 @@ Node mem_read_trylock(bptr_t address, mem_context_t *ctx, bool *success) {
 }
 
 #ifdef OPTIMISTIC_LOCK
-bool mem_write_unlock(AddrNode *node, mem_context_t *ctx) {
+bool mem_write_unlock(AddrNode *node, mem_context_t *ctx HBM_PARAM) {
 	bptr_t laddr = bptr_local_addr(node->addr);
-	Node *mem = resolve_mem(node->addr, ctx);
+	Node *mem = resolve_mem(node->addr, ctx HBM_ARG);
 	assert(laddr < MEM_SIZE);
 	Node tmp = mem[laddr];
 	if (tmp.lock != node->node.lock) return false;
@@ -112,19 +122,19 @@ bool mem_write_unlock(AddrNode *node, mem_context_t *ctx) {
 	return true;
 }
 #else
-void mem_write_unlock(AddrNode *node, mem_context_t *ctx) {
+void mem_write_unlock(AddrNode *node, mem_context_t *ctx HBM_PARAM) {
 	bptr_t laddr = bptr_local_addr(node->addr);
-	Node *mem = resolve_mem(node->addr, ctx);
+	Node *mem = resolve_mem(node->addr, ctx HBM_ARG);
 	assert(laddr < MEM_SIZE);
 	lock_v(&node->node.lock);
 	mem[laddr] = node->node;
 }
 #endif
 
-void mem_unlock(bptr_t address, mem_context_t *ctx) {
+void mem_unlock(bptr_t address, mem_context_t *ctx HBM_PARAM) {
 #ifndef OPTIMISTIC_LOCK
 	bptr_t laddr = bptr_local_addr(address);
-	Node *mem = resolve_mem(address, ctx);
+	Node *mem = resolve_mem(address, ctx HBM_ARG);
 	assert(laddr < MEM_SIZE);
 	// Cast byte pointer to lock_t pointer to ensure write is of correct size
 	*((lock_t*) (
@@ -139,9 +149,16 @@ void mem_unlock(bptr_t address, mem_context_t *ctx) {
 #endif
 }
 
-void mem_reset_all(mem_context_t *ctx) {
+void mem_reset_all(mem_context_t *ctx HBM_PARAM) {
+#ifdef __SYNTHESIS__
+	memset(hbm, INVALID, MEM_SIZE*sizeof(Node));
+	for (bptr_t i = 0; i < MEM_SIZE; i++) {
+		hbm[i].lock = LOCK_INIT;
+	}
+#else
 	memset(ctx->local_memory, INVALID, MEM_SIZE*sizeof(Node));
 	for (bptr_t i = 0; i < MEM_SIZE; i++) {
 		ctx->local_memory[i].lock = LOCK_INIT;
 	}
+#endif
 }

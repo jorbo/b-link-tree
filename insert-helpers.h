@@ -3,9 +3,9 @@
 
 
 #include "types.h"
+#include "memory.h"
 typedef struct Node Node;
 typedef struct AddrNode AddrNode;
-typedef struct mem_context mem_context_t;
 
 
 //! @brief Find the maximum key in a node
@@ -34,7 +34,7 @@ ErrorCode insert_after_split(
 	//! [out] The new sibling to insert into
 	AddrNode *sibling,
 	//! [in] Memory context
-	mem_context_t *ctx
+	mem_context_t *ctx HBM_PARAM
 );
 
 //! @brief Replace a key without changing its corresponding value

@@ -39,7 +39,7 @@ ErrorCode insert_nonfull(Node *node, bkey_t key, bval_t value) {
 
 
 ErrorCode insert_after_split(
-	bkey_t key, bval_t value, AddrNode *leaf, AddrNode *sibling, mem_context_t *ctx
+	bkey_t key, bval_t value, AddrNode *leaf, AddrNode *sibling, mem_context_t *ctx HBM_PARAM
 ) {
 	ErrorCode status;
 	if (key < max(&leaf->node)) {
@@ -50,12 +50,12 @@ ErrorCode insert_after_split(
 #ifdef OPTIMISTIC_LOCK
 	if (status != SUCCESS) return status;
 	if (
-		!mem_write_unlock(sibling, ctx) || !mem_write_unlock(leaf, ctx)
+		!mem_write_unlock(sibling, ctx HBM_ARG) || !mem_write_unlock(leaf, ctx HBM_ARG)
 	) return RESTART;
 	return SUCCESS;
 #else
-	mem_write_unlock(sibling, ctx);
-	mem_write_unlock(leaf, ctx);
+	mem_write_unlock(sibling, ctx HBM_ARG);
+	mem_write_unlock(leaf, ctx HBM_ARG);
 	return status;
 #endif
 }

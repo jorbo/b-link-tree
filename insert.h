@@ -2,9 +2,9 @@
 #define INSERT_H
 
 #include "types.h"
+#include "memory.h"
 
 typedef struct Node Node;
-typedef struct mem_context mem_context_t;
 
 //! @brief Insert a new value into the tree with the given key and value
 //! @param[inout] root   The address of the root of the tree to insert into
@@ -13,6 +13,6 @@ typedef struct mem_context mem_context_t;
 //! @param[in]    ctx    Memory context (local + remote node table)
 //! @return An error code representing the success or type of failure of the
 //!         operation
-ErrorCode insert(bptr_t *root, bkey_t key, bval_t value, mem_context_t *ctx);
+ErrorCode insert(bptr_t *root, bkey_t key, bval_t value, mem_context_t *ctx HBM_PARAM);
 
 #endif

@@ -28,7 +28,7 @@ static ErrorCode alloc_sibling(
 	//! [out] The contents of the split node's new sibling
 	AddrNode *sibling,
 	//! [in] Memory context
-	mem_context_t *ctx
+	mem_context_t *ctx HBM_PARAM
 ) {
 	const uint_fast8_t level = get_level(leaf->addr);
 	bool success;
@@ -39,11 +39,11 @@ static ErrorCode alloc_sibling(
 		laddr < (level+1) * MAX_NODES_PER_LEVEL;
 		++laddr) {
 		sibling->addr = bptr_make(ctx->local_id, laddr);
-		sibling->node = mem_read_trylock(sibling->addr, ctx, &success);
+		sibling->node = mem_read_trylock(sibling->addr, ctx, &success HBM_ARG);
 		if (success && sibling->node.keys[0] == INVALID) {
 			break;
 		} else {
-			mem_unlock(sibling->addr, ctx);
+			mem_unlock(sibling->addr, ctx HBM_ARG);
 		}
 	}
 	// If we didn't break, we didn't find an empty slot
@@ -78,7 +78,7 @@ static ErrorCode split_root(
 	//! [in] The contents of the split node's new sibling
 	AddrNode const *sibling,
 	//! [in] Memory context
-	mem_context_t *ctx
+	mem_context_t *ctx HBM_PARAM
 ) {
 	// If this is the only node we need to create the first inner node
 	if (is_leaf(leaf->addr)) {
@@ -93,7 +93,7 @@ static ErrorCode split_root(
 		}
 	}
 	parent->addr = *root;
-	parent->node = mem_read_lock(parent->addr, ctx);
+	parent->node = mem_read_lock(parent->addr, ctx HBM_ARG);
 	init_node(&parent->node);
 	parent->node.keys[0] = leaf->node.keys[DIV2CEIL(TREE_ORDER)-1];
 	parent->node.values[0].ptr = leaf->addr;
@@ -140,20 +140,20 @@ static ErrorCode split_nonroot(
 
 
 ErrorCode split_node(
-	bptr_t *root, AddrNode *leaf, AddrNode *parent, AddrNode *sibling, mem_context_t *ctx
+	bptr_t *root, AddrNode *leaf, AddrNode *parent, AddrNode *sibling, mem_context_t *ctx HBM_PARAM
 ) {
-	ErrorCode status = alloc_sibling(root, leaf, sibling, ctx);
+	ErrorCode status = alloc_sibling(root, leaf, sibling, ctx HBM_ARG);
 	if (status != SUCCESS) return status;
 	if (parent->addr == INVALID) {
-		status = split_root(root, leaf, parent, sibling, ctx);
+		status = split_root(root, leaf, parent, sibling, ctx HBM_ARG);
 	} else {
 		status = split_nonroot(root, leaf, parent, sibling);
 	}
 	if (status == SUCCESS) {
 		#ifdef OPTIMISTIC_LOCK
-		if (!mem_write_unlock(parent, ctx)) status = RESTART;
+		if (!mem_write_unlock(parent, ctx HBM_ARG)) status = RESTART;
 		#else
-		mem_write_unlock(parent, ctx);
+		mem_write_unlock(parent, ctx HBM_ARG);
 		#endif
 	}
 	return status;
