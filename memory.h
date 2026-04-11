@@ -7,6 +7,10 @@
 #include <stdbool.h>
 #include <string.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 #ifndef __SYNTHESIS__
 //! @brief A remote node entry: maps a node_id to a Node memory slab.
@@ -95,6 +99,10 @@ void mem_unlock(bptr_t address, mem_context_t *ctx HBM_PARAM);
 //!
 //! All data is 1s except for locks
 void mem_reset_all(mem_context_t *ctx HBM_PARAM);
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif
