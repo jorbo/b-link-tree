@@ -37,15 +37,15 @@ Response encode_insert_resp(insert_out_t out) {
 }
 
 
-Response execute_req(Request req, bptr_t *root, mem_context_t *ctx) {
+Response execute_req(Request req, bptr_t *root, mem_context_t *ctx HBM_PARAM) {
 	Response resp = {.opcode = req.opcode};
 	switch (req.opcode) {
 		case NOP: break;
 		case SEARCH:
-			resp.search = search(*root, req.search, ctx);
+			resp.search = search(*root, req.search, ctx HBM_ARG);
 			break;
 		case INSERT:
-			resp.insert = insert(root, req.insert.key, req.insert.value, ctx);
+			resp.insert = insert(root, req.insert.key, req.insert.value, ctx HBM_ARG);
 			break;
 	}
 	return resp;

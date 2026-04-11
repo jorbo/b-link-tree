@@ -2,11 +2,7 @@
 #define OPERATIONS_H
 
 
-#include "types.h"
-
-
-typedef struct Node Node;
-typedef struct mem_context mem_context_t;
+#include "memory.h"
 
 
 /* Use fixed-width type to ensure consistent ABI between C and C++ compilation units */
@@ -37,7 +33,7 @@ Request encode_insert_req(insert_in_t in);
 Response encode_search_resp(search_out_t out);
 Response encode_insert_resp(insert_out_t out);
 
-Response execute_req(Request req, bptr_t *root, mem_context_t *ctx);
+Response execute_req(Request req, bptr_t *root, mem_context_t *ctx HBM_PARAM);
 
 
 #endif
