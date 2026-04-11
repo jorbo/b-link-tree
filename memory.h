@@ -2,13 +2,10 @@
 #define MEMORY_H
 
 
-#include "types.h"
+#include "node.h"
 #include <stddef.h>
 #include <stdbool.h>
 #include <string.h>
-
-typedef struct Node Node;
-typedef struct AddrNode AddrNode;
 
 
 #ifndef __SYNTHESIS__
