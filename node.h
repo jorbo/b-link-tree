@@ -5,6 +5,10 @@
 #include "lock.h"
 #include "types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 //! @brief A generic node within the tree
 //!
@@ -62,6 +66,11 @@ typedef struct AddrNode AddrNode;
 
 //! @brief Check if a node at the given address is a leaf node or an inner node
 //! @param[in] addr  Address of the node within the tree to check
+#ifdef __cplusplus
+}
+#endif
+
+
 inline static bool is_leaf(bptr_t addr) {
 	// Leaves are stored at lowest local addresses; strip node_id before comparing
 	return bptr_local_addr(addr) < MAX_LEAVES;

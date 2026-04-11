@@ -4,6 +4,9 @@
 
 #include "memory.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Use fixed-width type to ensure consistent ABI between C and C++ compilation units */
 typedef uint32_t Opcode;
@@ -34,6 +37,10 @@ Response encode_search_resp(search_out_t out);
 Response encode_insert_resp(insert_out_t out);
 
 Response execute_req(Request req, bptr_t *root, mem_context_t *ctx HBM_PARAM);
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif
