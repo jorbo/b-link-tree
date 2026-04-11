@@ -5,8 +5,6 @@
 #include "types.h"
 #include "memory.h"
 
-typedef struct Node Node;
-
 
 //! @brief Get the index of a leaf in a lineage array
 //! @param[in] lineage  An existing array of a node's parents up until the root

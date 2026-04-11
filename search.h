@@ -4,8 +4,6 @@
 #include "types.h"
 #include "memory.h"
 
-typedef struct Node Node;
-
 //! @brief Search a tree for a key
 //! @param[in]  root  The root of the tree to search
 //! @param[in]  key   The key to search for

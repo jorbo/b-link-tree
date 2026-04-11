@@ -4,8 +4,6 @@
 #include "types.h"
 #include "memory.h"
 
-typedef struct Node Node;
-
 //! @brief Insert a new value into the tree with the given key and value
 //! @param[inout] root   The address of the root of the tree to insert into
 //! @param[in]    key    The key under which the value should be inserted

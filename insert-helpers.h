@@ -4,8 +4,6 @@
 
 #include "types.h"
 #include "memory.h"
-typedef struct Node Node;
-typedef struct AddrNode AddrNode;
 
 
 //! @brief Find the maximum key in a node

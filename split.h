@@ -5,9 +5,6 @@
 #include "types.h"
 #include "memory.h"
 
-typedef struct Node Node;
-typedef struct AddrNode AddrNode;
-
 
 //! @brief Split a node in the tree and return the affected nodes
 //! @return An error code representing the success or type of failure of the
