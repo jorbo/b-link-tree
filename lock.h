@@ -3,16 +3,20 @@
 
 #include "defs.h"
 #include <stdbool.h>
+
+/* pthread / assert / string are not available in HLS synthesis */
+#ifndef __SYNTHESIS__
 #include <pthread.h>
 #include <assert.h>
 #include <string.h>
+#endif
 
 #ifdef OPTIMISTIC_LOCK
 	#include <stdint.h>
 	typedef uint_fast32_t lock_t;
 	#define LOCK_INIT 0
 #else
-#if defined(HLS) || defined(FPGA)
+#if defined(__SYNTHESIS__)
 	#include <stdint.h>
 	typedef uint32_t lock_t;
 	#define LOCK_INIT 0
@@ -30,7 +34,7 @@ static inline bool lock_test(lock_t const *lock, lock_t const *lock_ref) {
 #else
 static inline bool lock_test(lock_t const *lock) {
 	#ifndef UNLOCKED
-		#if defined(HLS) || defined(FPGA)
+		#if defined(__SYNTHESIS__)
 			return *lock != LOCK_INIT;
 		#else
 			lock_t unset = LOCK_INIT;
@@ -50,7 +54,7 @@ static inline bool lock_test(lock_t const *lock) {
 //! @brief Perform an atomic test-and-set operation on the given lock
 static inline bool test_and_set(lock_t *lock) {
 	#ifndef UNLOCKED
-		#if defined(HLS) || defined(FPGA)
+		#if defined(__SYNTHESIS__)
 			bool old = *lock;
 			*lock = true;
 			return old;
@@ -66,7 +70,7 @@ static inline bool test_and_set(lock_t *lock) {
 //! @brief Set the given lock to held
 static inline void lock_p(lock_t *lock) {
 	#ifndef UNLOCKED
-		#if defined(HLS) || defined(FPGA)
+		#if defined(__SYNTHESIS__)
 			while (test_and_set(lock));
 		#else
 			pthread_mutex_lock(lock);
@@ -77,8 +81,7 @@ static inline void lock_p(lock_t *lock) {
 //! @brief Release the given lock
 static inline void lock_v(lock_t *lock) {
 	#ifndef UNLOCKED
-		#if defined(HLS) || defined(FPGA)
-			assert(lock_test(lock));
+		#if defined(__SYNTHESIS__)
 			*lock = 0;
 		#else
 			assert(pthread_mutex_unlock(lock) == 0);
