@@ -1,8 +1,12 @@
 #include "memory.h"
 #include "lock.h"
 #include "node.h"
+#ifndef __SYNTHESIS__
 #include <assert.h>
 #include <string.h>
+#else
+#define assert(x) ((void)0)
+#endif
 
 
 static lock_t local_readlock = LOCK_INIT;
@@ -54,7 +58,8 @@ Node mem_read(bptr_t address, mem_context_t *ctx HBM_PARAM) {
 //! @todo Set up multiple locks for specific regions of memory, such as by
 //! address ranges or hashes to allow higher write bandwidth.
 Node mem_read_lock(bptr_t address, mem_context_t *ctx HBM_PARAM) {
-#ifdef OPTIMISTIC_LOCK
+#if defined(OPTIMISTIC_LOCK) || defined(__SYNTHESIS__)
+	/* In synthesis the kernel is single-threaded; skip the spinlock loop. */
 	bptr_t laddr = bptr_local_addr(address);
 	Node *mem = resolve_mem(address, ctx HBM_ARG);
 	return mem[laddr];
@@ -84,9 +89,11 @@ Node mem_read_lock(bptr_t address, mem_context_t *ctx HBM_PARAM) {
 }
 
 Node mem_read_trylock(bptr_t address, mem_context_t *ctx, bool *success HBM_PARAM) {
-#ifdef OPTIMISTIC_LOCK
+#if defined(OPTIMISTIC_LOCK) || defined(__SYNTHESIS__)
+	/* In synthesis the kernel is single-threaded; skip the spinlock loop. */
 	bptr_t laddr = bptr_local_addr(address);
 	Node *mem = resolve_mem(address, ctx HBM_ARG);
+	if (success) *success = true;
 	return mem[laddr];
 #else
 	bptr_t laddr = bptr_local_addr(address);
@@ -152,8 +159,12 @@ void mem_unlock(bptr_t address, mem_context_t *ctx HBM_PARAM) {
 void mem_reset_all(mem_context_t *ctx HBM_PARAM) {
 #ifdef __SYNTHESIS__
 	(void)ctx;
-	memset(hbm, INVALID, MEM_SIZE*sizeof(Node));
 	for (bptr_t i = 0; i < MEM_SIZE; i++) {
+		#pragma HLS loop_tripcount max=MEM_SIZE
+		for (int j = 0; j < (int)sizeof(Node); j++) {
+			#pragma HLS loop_tripcount max=64
+			((uint8_t*)hbm)[i*sizeof(Node)+j] = (uint8_t)INVALID;
+		}
 		hbm[i].lock = LOCK_INIT;
 	}
 #else
