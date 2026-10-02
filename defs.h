@@ -27,4 +27,8 @@
 #define NO_GTEST
 #endif
 
+#ifndef RDMA_LANDING_SLOTS
+#define RDMA_LANDING_SLOTS 2
+#endif
+
 #endif
