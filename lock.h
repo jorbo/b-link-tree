@@ -5,15 +5,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-/* Use a fixed-width type so sizeof(Node) is identical in csim, synthesis,
-   and host builds — mismatched sizes corrupt cosim memory transfers. */
-#ifdef OPTIMISTIC_LOCK
-	typedef uint32_t lock_t;
-	#define LOCK_INIT 0
-#else
-	typedef uint32_t lock_t;
-	#define LOCK_INIT 0
-#endif
+/* The 8-byte (version, lock-bit) word that starts every node (Ziegler et
+   al., SIGMOD'19, sections 3.1 and 4.1). Fixed width so sizeof(Node) is
+   identical in csim, synthesis, and host builds — mismatched sizes corrupt
+   cosim memory transfers. */
+typedef uint64_t lock_t;
+#define LOCK_INIT 0
 
 /* assert is only available on the host */
 #ifndef __SYNTHESIS__

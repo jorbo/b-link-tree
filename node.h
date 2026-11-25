@@ -10,10 +10,29 @@ extern "C" {
 #endif
 
 
+//! Bytes of a node that carry content: header, keys, values, sibling link.
+#define NODE_CONTENT_SIZE \
+	(sizeof(lock_t) + TREE_ORDER * (sizeof(bkey_t) + sizeof(bval_t)) + sizeof(bptr_t))
+//! Width in bytes of the memory and network data path (512 bits).
+#define NODE_ALIGN 64
+//! @brief Bytes one node occupies in memory and in an RDMA read.
+//!
+//! Always a whole number of 64-byte beats, so every node starts on a beat
+//! boundary: tree memory, landing slots and RDMA transfers need no byte
+//! realignment. Defaults to the smallest size that fits TREE_ORDER entries;
+//! define it to fix the page size (the paper uses 1024).
+#ifndef NODE_SIZE
+#define NODE_SIZE ((NODE_CONTENT_SIZE / NODE_ALIGN + 1) * NODE_ALIGN)
+#endif
+
 //! @brief A generic node within the tree
 //!
 //! Can be a leaf node or an inner node
 struct Node {
+	//! @brief (version, lock-bit) header, first in the node as in the paper
+	//!
+	//! Restricts concurrent modifications to this node.
+	lock_t lock;
 	//! @brief Keys corresponding to child data at the same indices
 	//! @par Inner Nodes
 	//! In inner nodes, the keys are the exclusive upper
@@ -33,10 +52,18 @@ struct Node {
 	//!
 	//! These may be leaf data or pointers within the tree.
 	bptr_t next;
-	//! @brief Used to restrict concurrent modifications to this node
-	lock_t lock;
+	//! @brief Unused bytes filling the node up to NODE_SIZE
+	uint8_t pad[NODE_SIZE - NODE_CONTENT_SIZE];
 };
 typedef struct Node Node;
+
+#ifdef __cplusplus
+static_assert(sizeof(Node) == NODE_SIZE, "Node has implicit padding: NODE_SIZE is not its real size");
+static_assert(NODE_SIZE % NODE_ALIGN == 0, "NODE_SIZE must be a multiple of NODE_ALIGN");
+#else
+_Static_assert(sizeof(Node) == NODE_SIZE, "Node has implicit padding: NODE_SIZE is not its real size");
+_Static_assert(NODE_SIZE % NODE_ALIGN == 0, "NODE_SIZE must be a multiple of NODE_ALIGN");
+#endif
 
 //! @brief Traverse the tree structure in search of the given key
 //! @param[in] key The key to search for

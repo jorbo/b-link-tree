@@ -1,6 +1,7 @@
 #include "memory.h"
 #include "lock.h"
 #include "node.h"
+#include <stddef.h>
 #ifndef __SYNTHESIS__
 #include <assert.h>
 #include <string.h>
@@ -150,7 +151,7 @@ void mem_unlock(bptr_t address, mem_context_t *ctx HBM_PARAM) {
 			(uint8_t*) mem
 		)[
 			// Address of the lock field of the node who starts at laddr
-			(laddr+1)*sizeof(Node)-sizeof(lock_t)
+			laddr*sizeof(Node)+offsetof(Node, lock)
 		]
 	)) = LOCK_INIT;
 #endif

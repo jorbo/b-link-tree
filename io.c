@@ -23,7 +23,7 @@ void dump_keys(FILE *stream, Node const *node) {
 		}
 	}
 	#ifdef OPTIMISTIC_LOCK
-	fprintf(stream, "; %3u] ", node->lock);
+	fprintf(stream, "; %3llu] ", (unsigned long long) node->lock);
 	#else
 	if (lock_test(&node->lock)) {
 		fprintf(stream, "; LCK] ");
